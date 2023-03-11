@@ -26,7 +26,7 @@ export interface Main {
   deleteFile: (id: string) => Promise<CommonRes>;
   putSettings: (settings: Settings) => Promise<CommonRes>;
   getSettings: () => Promise<CommonResData<Settings>>;
-  getIntranet: () => Promise<CommonResData<string>>;
+  getIntranet: () => Promise<CommonResData<string[]>>;
   focusWebView: () => Promise<undefined>;
 }
 

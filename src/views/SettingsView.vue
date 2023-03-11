@@ -9,8 +9,12 @@ import { Language } from '@/constant';
 const message = useMessage();
 const router = useRouter();
 
-const page = reactive({
+const page = reactive<{
+  submitBtnLoading: boolean,
+  hostOptions: {label: string, value: string}[]
+}>({
   submitBtnLoading: false,
+  hostOptions: [],
 });
 
 const model = ref({
@@ -45,7 +49,7 @@ const langOptions = [
 const display = computed(() => {
   const languageMap = {
     [Language.enUS]: {
-      language: 'language:',
+      language: 'lang:',
       host: 'host:',
       port: 'port:',
       save: 'save',
@@ -89,10 +93,13 @@ function handleLangSelectUpdate(e: MouseEvent, select: typeof langOptions[0]){
 onMounted(async () => {
   try {
     const settings = store.settings;
-    if (settings.host) return Object.assign(model.value, settings);
     const { code, msg, data } = await window.$main.getIntranet();
     if (code !== 0) return message.error(msg);
-    Object.assign(model.value, { language: settings.language, host: data, port: settings.port.toString() });
+    if (Array.isArray(data) && data.length) {
+      page.hostOptions = data.map(address => ({ label: address, value: address }));
+      model.value.host = settings.host || page.hostOptions[0].value;
+    }
+    Object.assign(model.value, { language: settings.language, host: model.value.host, port: settings.port.toString() });
   } catch (err) {
     throw new Error;
   }
@@ -117,8 +124,11 @@ onMounted(async () => {
         <n-form-item :label="display.language" path="language">
           <n-select v-model:value="model.language" :options="langOptions" :on-update-value="handleLangSelectUpdate"></n-select>
         </n-form-item>
-        <n-form-item :label="display.host" path="host">
-          <n-input v-model:value="model.host" :disabled="true"/>
+        <n-form-item :span="12" :label="display.host" path="host">
+          <n-select
+            v-model:value="model.host"
+            :options="page.hostOptions"
+          />
         </n-form-item>
         <n-form-item :label="display.port" path="port">
           <n-input v-model:value="model.port"></n-input>
